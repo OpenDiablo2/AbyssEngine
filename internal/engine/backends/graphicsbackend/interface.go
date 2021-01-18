@@ -9,6 +9,10 @@ type Interface interface {
 	GetVSyncEnabled() bool
 	GetCursorPos() (int, int)
 	CurrentFPS() float64
-	// NewSurface(width, height int) Surface
+	NewSurface(width, height int, pixelData *[]byte) (Surface, error)
 	Render() error
+}
+
+type Surface interface {
+	RenderTo(surface Surface) error
 }

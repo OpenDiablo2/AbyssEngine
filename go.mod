@@ -7,4 +7,5 @@ require (
 	github.com/sirupsen/logrus v1.7.0
 	github.com/veandco/go-sdl2 v0.4.5
 	go.uber.org/fx v1.13.1
+	golang.org/x/tools v0.0.0-20191114200427-caa0b0f7d508
 )
