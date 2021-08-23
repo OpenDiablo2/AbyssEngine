@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/OpenDiablo2/AbyssEngine/sprite"
+
 	"github.com/OpenDiablo2/AbyssEngine/loader/filesystemloader"
 
 	"github.com/OpenDiablo2/AbyssEngine/loader/mpqloader"
@@ -285,5 +287,42 @@ func (e *Engine) addScriptFunctions(script *tengo.Script) {
 		}
 
 		return &tengo.Array{Value: resultArray}, nil
+	})
+
+	// loadSprite(filePath: string, palette: string) Sprite
+	// returns a sprite based on the path and palette
+	_ = script.Add("loadSprite", func(args ...tengo.Object) (tengo.Object, error) {
+		if len(args) != 2 {
+			return tengo.UndefinedValue, errors.New("two parameters expected")
+		}
+
+		filePath, ok := tengo.ToString(args[0])
+
+		if !ok {
+			return tengo.UndefinedValue, errors.New("parameters must be of type string")
+		}
+
+		palette, ok := tengo.ToString(args[1])
+
+		if !ok {
+			return tengo.UndefinedValue, errors.New("parameters must be of type string")
+		}
+
+		return sprite.New(e.loader, filePath, palette)
+
+	})
+
+	// exitBootMode()
+	// exits boot mode and starts the main rendering system
+	_ = script.Add("exitBootMode", func(args ...tengo.Object) (tengo.Object, error) {
+		if len(args) != 0 {
+			return tengo.UndefinedValue, errors.New("no arguments expected")
+		}
+
+		log.Info().Msg("Entering game mode")
+
+		e.engineMode = EngineModeGame
+
+		return tengo.UndefinedValue, nil
 	})
 }

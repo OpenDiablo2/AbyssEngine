@@ -22,6 +22,7 @@ type Engine struct {
 	bootLogo      rl.Texture2D
 	bootLoadText  string
 	shutdown      bool
+	engineMode    EngineMode
 }
 
 func (e *Engine) GetLanguageCode() string {
@@ -37,6 +38,7 @@ func New(config Configuration) *Engine {
 	result := &Engine{
 		shutdown:      false,
 		config:        config,
+		engineMode:    EngineModeBoot,
 		renderSurface: rl.LoadRenderTexture(800, 600),
 		systemFont:    rl.LoadFontFromMemory(".ttf", media.FontDiabloHeavy, int32(len(media.FontDiabloHeavy)), 18, nil, 0),
 	}
@@ -70,7 +72,15 @@ func (e *Engine) Run() {
 		}
 
 		rl.BeginTextureMode(e.renderSurface)
-		e.showBootSplash()
+		rl.ClearBackground(rl.Black)
+
+		switch e.engineMode {
+		case EngineModeBoot:
+			e.showBootSplash()
+		case EngineModeGame:
+			e.showGame()
+		}
+
 		rl.EndTextureMode()
 
 		e.drawMainSurface()
@@ -79,8 +89,11 @@ func (e *Engine) Run() {
 	rl.CloseWindow()
 }
 
+func (e *Engine) showGame() {
+
+}
+
 func (e *Engine) showBootSplash() {
-	rl.ClearBackground(rl.Black)
 	rl.DrawTexture(e.bootLogo, int32(rl.GetScreenWidth()/3)-(e.bootLogo.Width/2),
 		int32(rl.GetScreenHeight()/2)-(e.bootLogo.Height/2), rl.White)
 
