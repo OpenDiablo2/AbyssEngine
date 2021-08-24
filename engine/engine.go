@@ -3,14 +3,18 @@ package engine
 import (
 	"math"
 
+	Entity "github.com/OpenDiablo2/AbyssEngine/entity"
+
 	"github.com/OpenDiablo2/AbyssEngine/loader"
 	"github.com/OpenDiablo2/AbyssEngine/loader/filesystemloader"
-
-	"github.com/rs/zerolog/log"
-
 	"github.com/OpenDiablo2/AbyssEngine/media"
-
 	rl "github.com/gen2brain/raylib-go/raylib"
+	"github.com/rs/zerolog/log"
+)
+
+var (
+	PaletteShader    rl.Shader
+	PaletteShaderLoc int32
 )
 
 // Engine represents the main game engine
@@ -23,6 +27,7 @@ type Engine struct {
 	bootLoadText  string
 	shutdown      bool
 	engineMode    EngineMode
+	rootNode      *Entity.Entity
 }
 
 func (e *Engine) GetLanguageCode() string {
@@ -41,6 +46,7 @@ func New(config Configuration) *Engine {
 		engineMode:    EngineModeBoot,
 		renderSurface: rl.LoadRenderTexture(800, 600),
 		systemFont:    rl.LoadFontFromMemory(".ttf", media.FontDiabloHeavy, int32(len(media.FontDiabloHeavy)), 18, nil, 0),
+		rootNode:      Entity.New(),
 	}
 
 	result.loader = loader.New(result)
@@ -53,6 +59,8 @@ func New(config Configuration) *Engine {
 	rl.GenTextureMipmaps(&result.systemFont.Texture)
 	rl.SetTextureFilter(result.systemFont.Texture, rl.FilterAnisotropic16x)
 
+	PaletteShader = rl.LoadShaderFromMemory(media.StandardVertexShader, media.PaletteFragmentShader)
+	PaletteShaderLoc = rl.GetShaderLocation(PaletteShader, "palette")
 	return result
 }
 
@@ -82,15 +90,22 @@ func (e *Engine) Run() {
 		}
 
 		rl.EndTextureMode()
-
 		e.drawMainSurface()
+
+		if e.engineMode == EngineModeGame {
+			e.updateGame()
+		}
 	}
 
 	rl.CloseWindow()
 }
 
 func (e *Engine) showGame() {
+	e.rootNode.Render()
+}
 
+func (e *Engine) updateGame() {
+	e.rootNode.Update()
 }
 
 func (e *Engine) showBootSplash() {
