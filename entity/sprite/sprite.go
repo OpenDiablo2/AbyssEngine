@@ -7,6 +7,8 @@ import (
 	"path"
 	"strings"
 
+	"github.com/d5/tengo/v2"
+
 	rl "github.com/gen2brain/raylib-go/raylib"
 
 	Entity "github.com/OpenDiablo2/AbyssEngine/entity"
@@ -19,31 +21,34 @@ import (
 type Sprite struct {
 	*Entity.Entity
 
-	Sequences       []*dc6.Direction
-	palette         []float32
-	CurrentSequence int
-	CurrentFrame    int
-	X               int
-	Y               int
-	initialized     bool
-	Visible         bool
-	CellSizeX       int
-	CellSizeY       int
-	texture         rl.RenderTexture2D
+	mousePosProvider  common.MousePositionProvider
+	Sequences         []*dc6.Direction
+	palette           []float32
+	CurrentSequence   int
+	CurrentFrame      int
+	initialized       bool
+	Visible           bool
+	CellSizeX         int
+	CellSizeY         int
+	isPressed         bool
+	texture           rl.RenderTexture2D
+	onMouseButtonDown *tengo.CompiledFunction
+	onMouseButtonUp   *tengo.CompiledFunction
 }
 
-func New(loaderProvider common.LoaderProvider, filePath, palette string) (*Sprite, error) {
+func New(loaderProvider common.LoaderProvider, mousePosProvider common.MousePositionProvider,
+	filePath, palette string) (*Sprite, error) {
 	result := &Sprite{
-		Entity:          Entity.New(),
-		X:               0,
-		Y:               0,
-		initialized:     false,
-		Visible:         true,
-		CurrentSequence: 0,
-		CurrentFrame:    0,
-		CellSizeX:       1,
-		CellSizeY:       1,
-		palette:         make([]float32, 256*3),
+		Entity:           Entity.New(),
+		mousePosProvider: mousePosProvider,
+		initialized:      false,
+		Visible:          true,
+		CurrentSequence:  0,
+		CurrentFrame:     0,
+		CellSizeX:        1,
+		CellSizeY:        1,
+		isPressed:        false,
+		palette:          make([]float32, 256*3),
 	}
 
 	result.RenderCallback = func() { result.render() }
@@ -124,6 +129,7 @@ func (s *Sprite) render() {
 	if !s.initialized {
 		return
 	}
+
 	//rl.DrawRectangle(int32(s.X), int32(s.Y), int32(s.FrameWidth()), int32(s.FrameHeight()), rl.White)
 	//rl.SetShaderValueV(common.PaletteShader, common.PaletteShaderLoc, s.palette, rl.ShaderUniformIvec3, 256)
 	//rl.BeginShaderMode(common.PaletteShader)
@@ -135,6 +141,24 @@ func (s *Sprite) update() {
 	if !s.initialized {
 		s.initialized = true
 		s.initializeTexture()
+	}
+
+	if !s.isPressed && rl.IsMouseButtonDown(rl.MouseLeftButton) {
+
+		mx, my := s.mousePosProvider.GetMousePosition()
+		posX, posY := s.GetPosition()
+
+		if mx < posX || my < posY || mx >= (posX+int(s.texture.Texture.Width)) || my >= (posY+int(s.texture.Texture.Height)) {
+			return
+		}
+
+		s.isPressed = true
+
+		if s.onMouseButtonDown != nil {
+			// TODO: Call
+		}
+	} else {
+		s.isPressed = false
 	}
 }
 
@@ -166,6 +190,12 @@ func (s *Sprite) initializeTexture() {
 			for y := 0; y < int(frameHeight); y++ {
 				idx := targetStartX + ((targetStartY + y) * width)
 				for x := 0; x < int(frameWidth); x++ {
+					if s.Sequences[s.CurrentSequence].Frames[cellIndex].ColorIndexAt(x, y) == 0 {
+						pixels[idx].A = 0
+						idx++
+						continue
+					}
+
 					r, g, b, a := s.Sequences[s.CurrentSequence].Frames[cellIndex].At(x, y).RGBA()
 
 					pixels[idx].R = uint8(r)

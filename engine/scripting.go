@@ -36,22 +36,23 @@ func (e *Engine) bootstrapScripts() {
 
 		bootScriptFile.Close()
 
-		script := tengo.NewScript(bootScript)
-		script.EnableFileImport(true)
-		_ = script.SetImportDir(e.config.RootPath)
+		s := tengo.NewScript(bootScript)
+		s.EnableFileImport(true)
+		_ = s.SetImportDir(e.config.RootPath)
 
-		e.addScriptFunctions(script)
+		e.addScriptFunctions(s)
 
-		compiled, err := script.Compile()
+		e.script, err = s.Compile()
 
 		if err != nil {
 			e.panic(err.Error())
 			return
 		}
 
-		if err := compiled.Run(); err != nil {
+		if err := e.script.Run(); err != nil {
 			e.panic(err.Error())
 		}
+
 	}()
 }
 
@@ -307,7 +308,7 @@ func (e *Engine) addScriptFunctions(script *tengo.Script) {
 				return tengo.UndefinedValue, errors.New("parameters must be of type string")
 			}
 
-			result, err := sprite.New(e.loader, filePath, palette)
+			result, err := sprite.New(e.loader, e, filePath, palette)
 
 			if err != nil {
 				return nil, err
@@ -338,6 +339,23 @@ func (e *Engine) addScriptFunctions(script *tengo.Script) {
 			}
 
 			return e.rootNode, nil
+		}},
+
+		// setCursor(cursor: Sprite)
+		"setCursor": &tengo.UserFunction{Value: func(args ...tengo.Object) (tengo.Object, error) {
+			if len(args) != 1 {
+				return tengo.UndefinedValue, errors.New("one argument expected")
+			}
+
+			cursor, ok := tengo.ToInterface(args[0]).(*sprite.Sprite)
+
+			if !ok {
+				e.cursorSprite = nil
+			} else {
+				e.cursorSprite = cursor
+			}
+
+			return tengo.UndefinedValue, nil
 		}},
 	})
 

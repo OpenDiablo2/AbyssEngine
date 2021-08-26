@@ -40,8 +40,8 @@ func (e *Entity) IndexGet(index tengo.Object) (value tengo.Object, err error) {
 	}
 
 	switch indexStr {
-	case "id":
-		return &tengo.String{Value: e.id.String()}, nil
+	case "Id":
+		return &tengo.String{Value: e.Id.String()}, nil
 	case "appendChild":
 		return &tengo.UserFunction{
 			Name: "appendChild",

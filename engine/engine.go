@@ -1,7 +1,13 @@
 package engine
 
 import (
+	"fmt"
 	"math"
+	"runtime"
+
+	"github.com/d5/tengo/v2"
+
+	"github.com/OpenDiablo2/AbyssEngine/entity/sprite"
 
 	Entity "github.com/OpenDiablo2/AbyssEngine/entity"
 
@@ -27,7 +33,15 @@ type Engine struct {
 	bootLoadText  string
 	shutdown      bool
 	engineMode    EngineMode
+	cursorSprite  *sprite.Sprite
 	rootNode      *Entity.Entity
+	script        *tengo.Compiled
+	cursorX       int
+	cursorY       int
+}
+
+func (e *Engine) GetMousePosition() (X, Y int) {
+	return e.cursorX, e.cursorY
 }
 
 func (e *Engine) GetLanguageCode() string {
@@ -38,7 +52,8 @@ func (e *Engine) GetLanguageCode() string {
 func New(config Configuration) *Engine {
 	rl.SetConfigFlags(rl.FlagWindowResizable | rl.FlagVsyncHint)
 	rl.InitWindow(800, 600, "Abyss Engine")
-	rl.SetTargetFPS(25)
+	rl.SetTargetFPS(60)
+	rl.HideCursor()
 
 	result := &Engine{
 		shutdown:      false,
@@ -102,10 +117,26 @@ func (e *Engine) Run() {
 
 func (e *Engine) showGame() {
 	e.rootNode.Render()
+	if e.cursorSprite != nil {
+		e.cursorSprite.Render()
+	}
 }
 
 func (e *Engine) updateGame() {
 	e.rootNode.Update()
+	if e.cursorSprite != nil {
+		scale := float32(math.Min(float64(rl.GetScreenWidth())/800.0, float64(rl.GetScreenHeight())/600.0))
+		xOrigin := (float32(rl.GetScreenWidth()) - (800.0 * scale)) * 0.5
+		yOrigin := (float32(rl.GetScreenHeight()) - (600.0 * scale)) * 0.5
+
+		e.cursorX = int((float32(rl.GetMouseX()) - xOrigin) * (1.0 / scale))
+		e.cursorSprite.X = e.cursorX
+
+		e.cursorY = int((float32(rl.GetMouseY()) - yOrigin) * (1.0 / scale))
+		e.cursorSprite.Y = e.cursorY
+
+		e.cursorSprite.Update()
+	}
 }
 
 func (e *Engine) showBootSplash() {
@@ -134,6 +165,14 @@ func (e *Engine) drawMainSurface() {
 			Width:  800.0 * scale,
 			Height: 600.0 * scale},
 		rl.Vector2{}, 0.0, rl.White)
+
+	var memStats runtime.MemStats
+	runtime.ReadMemStats(&memStats)
+
+	rl.DrawTextEx(e.systemFont, fmt.Sprintf("FPS: %d", int(rl.GetFPS())), rl.Vector2{X: 5, Y: 5}, 18, 0, rl.White)
+	rl.DrawTextEx(e.systemFont, fmt.Sprintf("GC: %d (%%%d)", int(memStats.NumGC), int(memStats.GCCPUFraction*100)), rl.Vector2{X: 5, Y: 21}, 18, 0, rl.White)
+	rl.DrawTextEx(e.systemFont, fmt.Sprintf("Alloc: %d/%d - %0.2fMB", int(memStats.Alloc/1024/1024), int(memStats.TotalAlloc/1024/1024), float32(memStats.Sys/1024/1024)), rl.Vector2{X: 5, Y: 37}, 18, 0, rl.White)
+
 	rl.EndDrawing()
 }
 
