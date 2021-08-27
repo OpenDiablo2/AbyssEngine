@@ -13,6 +13,7 @@ import (
 	"github.com/OpenDiablo2/AbyssEngine/common"
 	datPalette "github.com/OpenDiablo2/dat_palette/pkg"
 	dc6 "github.com/OpenDiablo2/dc6/pkg"
+	dcc "github.com/OpenDiablo2/dcc/pkg"
 )
 
 type Sprite struct {
@@ -79,7 +80,20 @@ func New(loaderProvider common.LoaderProvider, mousePosProvider common.MousePosi
 
 	switch fileExt {
 	case ".dcc":
-		// TODO: add this
+		bytes, err := ioutil.ReadAll(fileStream)
+
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = dcc.FromBytes(bytes)
+
+		if err != nil {
+			return nil, err
+		}
+
+		result.setPalette(paletteData)
+		// result.Sequences = dccRes.Directions() TODO: Fix
 		return nil, errors.New("unsupported file format")
 	case ".dc6":
 		bytes, err := ioutil.ReadAll(fileStream)
