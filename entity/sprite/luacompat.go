@@ -65,7 +65,7 @@ func luaSetCellSize(l *lua.LState) int {
 	sprite.CellSizeX = int(sizeX)
 	sprite.CellSizeY = int(sizeY)
 	sprite.initialized = false
-	rl.UnloadRenderTexture(sprite.texture)
+	rl.UnloadTexture(sprite.texture)
 
 	return 0
 }

@@ -7,6 +7,7 @@ import (
 
 	lua "github.com/yuin/gopher-lua"
 
+	"github.com/OpenDiablo2/AbyssEngine/common"
 	"github.com/OpenDiablo2/AbyssEngine/entity"
 	Entity "github.com/OpenDiablo2/AbyssEngine/entity"
 	"github.com/OpenDiablo2/AbyssEngine/entity/sprite"
@@ -15,11 +16,6 @@ import (
 	"github.com/OpenDiablo2/AbyssEngine/media"
 	rl "github.com/gen2brain/raylib-go/raylib"
 	"github.com/rs/zerolog/log"
-)
-
-var (
-	PaletteShader    rl.Shader
-	PaletteShaderLoc int32
 )
 
 // Engine represents the main game engine
@@ -73,8 +69,8 @@ func New(config Configuration) *Engine {
 	rl.GenTextureMipmaps(&result.systemFont.Texture)
 	rl.SetTextureFilter(result.systemFont.Texture, rl.FilterAnisotropic16x)
 
-	PaletteShader = rl.LoadShaderFromMemory(media.StandardVertexShader, media.PaletteFragmentShader)
-	PaletteShaderLoc = rl.GetShaderLocation(PaletteShader, "palette")
+	common.PaletteShader = rl.LoadShaderFromMemory(media.StandardVertexShader, media.PaletteFragmentShader)
+	common.PaletteShaderLoc = rl.GetShaderLocation(common.PaletteShader, "palette")
 	return result
 }
 

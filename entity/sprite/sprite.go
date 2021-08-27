@@ -2,7 +2,6 @@ package sprite
 
 import (
 	"errors"
-	"image/color"
 	"io/ioutil"
 	"path"
 	"strings"
@@ -29,7 +28,7 @@ type Sprite struct {
 	CellSizeX        int
 	CellSizeY        int
 	isPressed        bool
-	texture          rl.RenderTexture2D
+	texture          rl.Texture2D
 }
 
 func New(loaderProvider common.LoaderProvider, mousePosProvider common.MousePositionProvider,
@@ -93,7 +92,6 @@ func New(loaderProvider common.LoaderProvider, mousePosProvider common.MousePosi
 			return nil, err
 		}
 
-		dc6Res.SetPalette(color.Palette(paletteData))
 		result.setPalette(paletteData)
 		result.Sequences = dc6Res.Directions
 
@@ -113,11 +111,12 @@ func (s *Sprite) setPalette(paletteData datPalette.DAT) {
 			break
 		}
 
+
 		offset := i * 3
 		r, g, b, _ := paletteData[i].RGBA()
-		s.palette[offset] = float32(r)
-		s.palette[offset+1] = float32(g)
-		s.palette[offset+2] = float32(b)
+		s.palette[offset] = float32(r) / 65535.0
+		s.palette[offset+1] = float32(g) / 65535.0
+		s.palette[offset+2] = float32(b) / 65535.0
 	}
 }
 
@@ -127,10 +126,10 @@ func (s *Sprite) render() {
 	}
 
 	//rl.DrawRectangle(int32(s.X), int32(s.Y), int32(s.FrameWidth()), int32(s.FrameHeight()), rl.White)
-	//rl.SetShaderValueV(common.PaletteShader, common.PaletteShaderLoc, s.palette, rl.ShaderUniformIvec3, 256)
-	//rl.BeginShaderMode(common.PaletteShader)
-	rl.DrawTexture(s.texture.Texture, int32(s.X), int32(s.Y), rl.White)
-	//rl.EndShaderMode()
+	rl.SetShaderValueV(common.PaletteShader, common.PaletteShaderLoc, s.palette, rl.ShaderUniformVec3, 256)
+	rl.BeginShaderMode(common.PaletteShader)
+	rl.DrawTexture(s.texture, int32(s.X), int32(s.Y), rl.White)
+	rl.EndShaderMode()
 }
 
 func (s *Sprite) update() {
@@ -144,7 +143,7 @@ func (s *Sprite) update() {
 		mx, my := s.mousePosProvider.GetMousePosition()
 		posX, posY := s.GetPosition()
 
-		if mx < posX || my < posY || mx >= (posX+int(s.texture.Texture.Width)) || my >= (posY+int(s.texture.Texture.Height)) {
+		if mx < posX || my < posY || mx >= (posX+int(s.texture.Width)) || my >= (posY+int(s.texture.Height)) {
 			return
 		}
 
@@ -170,8 +169,7 @@ func (s *Sprite) initializeTexture() {
 		height += int(s.Sequences[s.CurrentSequence].Frames[s.CurrentFrame+(i*s.CellSizeX)].Height)
 	}
 
-	s.texture = rl.LoadRenderTexture(int32(width), int32(height))
-	pixels := make([]rl.Color, width*height)
+	pixels := make([]byte, width*height)
 
 	targetStartX := 0
 	targetStartY := 0
@@ -186,18 +184,9 @@ func (s *Sprite) initializeTexture() {
 			for y := 0; y < int(frameHeight); y++ {
 				idx := targetStartX + ((targetStartY + y) * width)
 				for x := 0; x < int(frameWidth); x++ {
-					if s.Sequences[s.CurrentSequence].Frames[cellIndex].ColorIndexAt(x, y) == 0 {
-						pixels[idx].A = 0
-						idx++
-						continue
-					}
+					c := s.Sequences[s.CurrentSequence].Frames[cellIndex].ColorIndexAt(x, y)
 
-					r, g, b, a := s.Sequences[s.CurrentSequence].Frames[cellIndex].At(x, y).RGBA()
-
-					pixels[idx].R = uint8(r)
-					pixels[idx].G = uint8(g)
-					pixels[idx].B = uint8(b)
-					pixels[idx].A = uint8(a)
+					pixels[idx] = c
 					idx++
 				}
 			}
@@ -209,6 +198,7 @@ func (s *Sprite) initializeTexture() {
 		targetStartY += int(s.Sequences[s.CurrentSequence].Frames[(cellOffsetY * s.CellSizeX)].Height)
 	}
 
-	rl.UpdateTexture(s.texture.Texture, pixels)
+	img := rl.NewImage(pixels, int32(width), int32(height), 1, rl.UncompressedGrayscale)
+	s.texture = rl.LoadTextureFromImage(img)
 
 }
