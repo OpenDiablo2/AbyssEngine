@@ -18,17 +18,19 @@ import (
 type Sprite struct {
 	*Entity.Entity
 
-	mousePosProvider common.MousePositionProvider
-	Sequences        []*dc6.Direction
-	palette          []float32
-	CurrentSequence  int
-	CurrentFrame     int
-	initialized      bool
-	Visible          bool
-	CellSizeX        int
-	CellSizeY        int
-	isPressed        bool
-	texture          rl.Texture2D
+	mousePosProvider  common.MousePositionProvider
+	Sequences         []*dc6.Direction
+	palette           []float32
+	CurrentSequence   int
+	CurrentFrame      int
+	initialized       bool
+	Visible           bool
+	CellSizeX         int
+	CellSizeY         int
+	isPressed         bool
+	texture           rl.Texture2D
+	onMouseButtonDown func()
+	onMouseButtonUp   func()
 }
 
 func New(loaderProvider common.LoaderProvider, mousePosProvider common.MousePositionProvider,
@@ -111,7 +113,6 @@ func (s *Sprite) setPalette(paletteData datPalette.DAT) {
 			break
 		}
 
-
 		offset := i * 3
 		r, g, b, _ := paletteData[i].RGBA()
 		s.palette[offset] = float32(r) / 65535.0
@@ -121,7 +122,7 @@ func (s *Sprite) setPalette(paletteData datPalette.DAT) {
 }
 
 func (s *Sprite) render() {
-	if !s.initialized {
+	if !s.initialized || !s.Visible || !s.Active {
 		return
 	}
 
@@ -149,9 +150,9 @@ func (s *Sprite) update() {
 
 		s.isPressed = true
 
-		//if s.onMouseButtonDown != nil {
-		// TODO: Call
-		//}
+		if s.onMouseButtonDown != nil {
+			s.onMouseButtonDown()
+		}
 	} else {
 		s.isPressed = false
 	}

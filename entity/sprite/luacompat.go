@@ -14,10 +14,12 @@ var LuaTypeExport = common.LuaTypeExport{
 	Name: luaTypeExportName,
 	//ConstructorFunc: newLuaEntity,
 	Methods: map[string]lua.LGFunction{
-		"node":        luaGetNode,
-		"setCellSize": luaSetCellSize,
-		"active":      luaGetSetActive,
-		"visible":     luaGetSetVisible,
+		"node":                   luaGetNode,
+		"cellSize":               luaGetSetCellSize,
+		"active":                 luaGetSetActive,
+		"visible":                luaGetSetVisible,
+		"position":               luaGetSetPosition,
+		"mouseButtonDownHandler": luaGetSetMouseButtonDownHandler,
 	},
 }
 
@@ -53,12 +55,41 @@ func FromLua(ud *lua.LUserData) (*Sprite, error) {
 	return v, nil
 }
 
-func luaSetCellSize(l *lua.LState) int {
+func luaGetSetPosition(l *lua.LState) int {
 	sprite, err := FromLua(l.ToUserData(1))
 
 	if err != nil {
 		l.RaiseError("failed to convert")
 		return 0
+	}
+
+	if l.GetTop() == 1 {
+		l.Push(lua.LNumber(sprite.X))
+		l.Push(lua.LNumber(sprite.Y))
+		return 2
+	}
+
+	posX := l.ToNumber(2)
+	posY := l.ToNumber(3)
+
+	sprite.X = int(posX)
+	sprite.Y = int(posY)
+
+	return 0
+}
+
+func luaGetSetCellSize(l *lua.LState) int {
+	sprite, err := FromLua(l.ToUserData(1))
+
+	if err != nil {
+		l.RaiseError("failed to convert")
+		return 0
+	}
+
+	if l.GetTop() == 1 {
+		l.Push(lua.LNumber(sprite.CellSizeX))
+		l.Push(lua.LNumber(sprite.CellSizeY))
+		return 2
 	}
 
 	sizeX := l.ToNumber(2)
@@ -68,6 +99,37 @@ func luaSetCellSize(l *lua.LState) int {
 	sprite.CellSizeY = int(sizeY)
 	sprite.initialized = false
 	rl.UnloadTexture(sprite.texture)
+
+	return 0
+}
+
+func luaGetSetMouseButtonDownHandler(l *lua.LState) int {
+	sprite, err := FromLua(l.ToUserData(1))
+
+	if err != nil {
+		l.RaiseError("failed to convert")
+		return 0
+	}
+
+	if l.GetTop() == 1 {
+		l.Push(l.NewFunction(func(l *lua.LState) int {
+			sprite.onMouseButtonDown()
+			return 0
+		}))
+
+		return 1
+	}
+
+	luaFunc := l.CheckFunction(2)
+	sprite.onMouseButtonDown = func() {
+		if err := l.CallByParam(lua.P{
+			Fn:      luaFunc,
+			NRet:    1,
+			Protect: true,
+		}, sprite.ToLua(l)); err != nil {
+			panic(err)
+		}
+	}
 
 	return 0
 }
@@ -110,51 +172,6 @@ func luaGetSetActive(l *lua.LState) int {
 	return 0
 }
 
-//func (s *Sprite) IndexGet(index tengo.Object) (value tengo.Object, err error) {
-//	indexStr, ok := tengo.ToString(index)
-//
-//	if !ok {
-//		return nil, errors.New("invalid index")
-//	}
-//
-//	switch indexStr {
-//	case "x":
-//		return &tengo.Int{Value: int64(s.X)}, nil
-//	case "y":
-//		return &tengo.Int{Value: int64(s.Y)}, nil
-//	case "node":
-//		return s.Entity, nil
-//	case "setPosition":
-//		return &tengo.UserFunction{
-//			Name: "appendChild",
-//			Value: func(args ...tengo.Object) (ret tengo.Object, err error) {
-//				if len(args) != 2 {
-//					return nil, errors.New("expected two arguments")
-//				}
-//
-//				posX, ok := tengo.ToInt(args[0])
-//
-//				if !ok {
-//					return nil, errors.New("first argument must be int")
-//				}
-//
-//				posY, ok := tengo.ToInt(args[0])
-//
-//				if !ok {
-//					return nil, errors.New("first argument must be int")
-//				}
-//
-//				s.X = posX
-//				s.Y = posY
-//
-//				return s, nil
-//			},
-//		}, nil
-//	}
-//
-//	return nil, fmt.Errorf("invalid index: %s", indexStr)
-//
-//}
 //
 //func (s *Sprite) IndexSet(index, value tengo.Object) error {
 //	indexStr, ok := tengo.ToString(index)

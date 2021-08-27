@@ -121,8 +121,6 @@ func (e *Engine) bootstrapScripts() {
 			return 1
 		})
 
-		defer e.luaState.Close()
-
 		err := e.luaState.DoString("require(\"/bootstrap\")")
 
 		if err != nil {

@@ -107,6 +107,7 @@ func (e *Engine) Run() {
 		}
 	}
 
+	e.luaState.Close()
 	rl.CloseWindow()
 }
 
