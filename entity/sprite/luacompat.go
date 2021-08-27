@@ -16,6 +16,8 @@ var LuaTypeExport = common.LuaTypeExport{
 	Methods: map[string]lua.LGFunction{
 		"node":        luaGetNode,
 		"setCellSize": luaSetCellSize,
+		"active":      luaGetSetActive,
+		"visible":     luaGetSetVisible,
 	},
 }
 
@@ -70,6 +72,44 @@ func luaSetCellSize(l *lua.LState) int {
 	return 0
 }
 
+func luaGetSetVisible(l *lua.LState) int {
+	sprite, err := FromLua(l.ToUserData(1))
+
+	if err != nil {
+		l.RaiseError("failed to convert")
+		return 0
+	}
+
+	if l.GetTop() == 1 {
+		l.Push(lua.LBool(sprite.Visible))
+		return 1
+	}
+
+	newValue := l.CheckBool(2)
+	sprite.Visible = newValue
+
+	return 0
+}
+
+func luaGetSetActive(l *lua.LState) int {
+	sprite, err := FromLua(l.ToUserData(1))
+
+	if err != nil {
+		l.RaiseError("failed to convert")
+		return 0
+	}
+
+	if l.GetTop() == 1 {
+		l.Push(lua.LBool(sprite.Active))
+		return 1
+	}
+
+	newValue := l.CheckBool(2)
+	sprite.Active = newValue
+
+	return 0
+}
+
 //func (s *Sprite) IndexGet(index tengo.Object) (value tengo.Object, err error) {
 //	indexStr, ok := tengo.ToString(index)
 //
@@ -110,44 +150,6 @@ func luaSetCellSize(l *lua.LState) int {
 //				return s, nil
 //			},
 //		}, nil
-//	case "setActive":
-//		return &tengo.UserFunction{
-//			Name: "setActive",
-//			Value: func(args ...tengo.Object) (ret tengo.Object, err error) {
-//				if len(args) != 1 {
-//					return nil, errors.New("expected one argument")
-//				}
-//
-//				value, ok := tengo.ToBool(args[0])
-//
-//				if !ok {
-//					return nil, errors.New("first argument must be boolean")
-//				}
-//
-//				s.Active = value
-//
-//				return s, nil
-//			},
-//		}, nil
-//	case "setVisible":
-//		return &tengo.UserFunction{
-//			Name: "setVisible",
-//			Value: func(args ...tengo.Object) (ret tengo.Object, err error) {
-//				if len(args) != 1 {
-//					return nil, errors.New("expected one argument")
-//				}
-//
-//				value, ok := tengo.ToBool(args[0])
-//
-//				if !ok {
-//					return nil, errors.New("first argument must be boolean")
-//				}
-//
-//				s.Visible = value
-//
-//				return s, nil
-//			},
-//		}, nil
 //	}
 //
 //	return nil, fmt.Errorf("invalid index: %s", indexStr)
@@ -183,20 +185,4 @@ func luaSetCellSize(l *lua.LState) int {
 //	}
 //
 //	return fmt.Errorf("invalid index: %s", indexStr)
-//}
-//
-//func (s *Sprite) Iterate() tengo.Iterator {
-//	panic("implement me")
-//}
-//
-//func (s *Sprite) CanIterate() bool {
-//	return false
-//}
-//
-//func (s *Sprite) Call(args ...tengo.Object) (ret tengo.Object, err error) {
-//	panic("implement me")
-//}
-//
-//func (s *Sprite) CanCall() bool {
-//	panic("implement me")
 //}
