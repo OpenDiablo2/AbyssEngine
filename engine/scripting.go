@@ -114,6 +114,10 @@ func (e *Engine) bootstrapScripts() {
 				// setCursor(cursor: Sprite)
 				// sets the current cursor, or clears it if nil
 				"setCursor": func(l *lua.LState) int { return e.luaSetCursor(l) },
+
+				// loadPalette(name: string, filePath: string)
+				// loads palette for use with sprites
+				"loadPalette": func(l *lua.LState) int { return e.luaLoadPalette(l) },
 			})
 
 			e.luaState.Push(mod)
@@ -454,6 +458,25 @@ func (e *Engine) luaLog(l *lua.LState) int {
 
 	m := l.CheckString(2)
 	logObject.Msg(m)
+
+	return 0
+}
+
+func (e *Engine) luaLoadPalette(l *lua.LState) int {
+	if l.GetTop() != 2 {
+		l.ArgError(l.GetTop(), "expected two arguments")
+		return 0
+	}
+
+	palette := l.CheckString(1)
+	filePath := l.CheckString(2)
+
+	err := e.loadPalette(palette, filePath)
+
+	if err != nil {
+		l.RaiseError(err.Error())
+		return 0
+	}
 
 	return 0
 }

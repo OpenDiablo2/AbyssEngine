@@ -11,7 +11,6 @@ import (
 	Entity "github.com/OpenDiablo2/AbyssEngine/entity"
 
 	"github.com/OpenDiablo2/AbyssEngine/common"
-	datPalette "github.com/OpenDiablo2/dat_palette/pkg"
 	dc6 "github.com/OpenDiablo2/dc6/pkg"
 	dcc "github.com/OpenDiablo2/dcc/pkg"
 )
@@ -21,7 +20,7 @@ type Sprite struct {
 
 	mousePosProvider  common.MousePositionProvider
 	Sequences         []*dc6.Direction
-	palette           []float32
+	palette          string
 	CurrentSequence   int
 	CurrentFrame      int
 	initialized       bool
@@ -46,7 +45,7 @@ func New(loaderProvider common.LoaderProvider, mousePosProvider common.MousePosi
 		CellSizeX:        1,
 		CellSizeY:        1,
 		isPressed:        false,
-		palette:          make([]float32, 256*3),
+		palette:          palette,
 	}
 
 	result.RenderCallback = func() { result.render() }
@@ -54,28 +53,15 @@ func New(loaderProvider common.LoaderProvider, mousePosProvider common.MousePosi
 
 	fileExt := strings.ToLower(path.Ext(filePath))
 
-	paletteStream, err := loaderProvider.Load(palette)
-
-	if err != nil {
-		return nil, err
-	}
-
-	paletteBytes, err := ioutil.ReadAll(paletteStream)
-
-	if err != nil {
-		return nil, err
-	}
-
-	paletteData, err := datPalette.Decode(paletteBytes)
-
-	if err != nil {
-		return nil, err
-	}
-
 	fileStream, err := loaderProvider.Load(filePath)
 
 	if err != nil {
 		return nil, err
+	}
+
+	_, ok := common.PaletteTexture[palette]
+	if !ok {
+		return nil, errors.New("Sprite loaded with non-existent palette")
 	}
 
 	switch fileExt {
@@ -92,7 +78,6 @@ func New(loaderProvider common.LoaderProvider, mousePosProvider common.MousePosi
 			return nil, err
 		}
 
-		result.setPalette(paletteData)
 		// result.Sequences = dccRes.Directions() TODO: Fix
 		return nil, errors.New("unsupported file format")
 	case ".dc6":
@@ -108,7 +93,6 @@ func New(loaderProvider common.LoaderProvider, mousePosProvider common.MousePosi
 			return nil, err
 		}
 
-		result.setPalette(paletteData)
 		result.Sequences = dc6Res.Directions
 
 	default:
@@ -120,19 +104,8 @@ func New(loaderProvider common.LoaderProvider, mousePosProvider common.MousePosi
 	return result, nil
 }
 
-func (s *Sprite) setPalette(paletteData datPalette.DAT) {
-
-	for i := 0; i < 256; i++ {
-		if i >= len(paletteData) {
-			break
-		}
-
-		offset := i * 3
-		r, g, b, _ := paletteData[i].RGBA()
-		s.palette[offset] = float32(r) / 65535.0
-		s.palette[offset+1] = float32(g) / 65535.0
-		s.palette[offset+2] = float32(b) / 65535.0
-	}
+func (s *Sprite) setPalette(palette string) {
+	s.palette = palette
 }
 
 func (s *Sprite) render() {
@@ -140,9 +113,16 @@ func (s *Sprite) render() {
 		return
 	}
 
-	//rl.DrawRectangle(int32(s.X), int32(s.Y), int32(s.FrameWidth()), int32(s.FrameHeight()), rl.White)
-	rl.SetShaderValueV(common.PaletteShader, common.PaletteShaderLoc, s.palette, rl.ShaderUniformVec3, 256)
+	tex := common.PaletteTexture[s.palette]
+	if !tex.Init {
+		img := rl.NewImage(tex.Data, 256, 1, 1, rl.UncompressedR8g8b8a8)
+		tex.Texture = rl.LoadTextureFromImage(img)
+
+		tex.Init = true
+	}
+
 	rl.BeginShaderMode(common.PaletteShader)
+	rl.SetShaderValueTexture(common.PaletteShader, common.PaletteShaderLoc, tex.Texture)
 	rl.DrawTexture(s.texture, int32(s.X), int32(s.Y), rl.White)
 	rl.EndShaderMode()
 }

@@ -2,6 +2,7 @@ package engine
 
 import (
 	"fmt"
+	"io/ioutil"
 	"math"
 	"runtime"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/OpenDiablo2/AbyssEngine/loader"
 	"github.com/OpenDiablo2/AbyssEngine/loader/filesystemloader"
 	"github.com/OpenDiablo2/AbyssEngine/media"
+	datPalette "github.com/OpenDiablo2/dat_palette/pkg"
 	rl "github.com/gen2brain/raylib-go/raylib"
 	"github.com/rs/zerolog/log"
 )
@@ -170,6 +172,57 @@ func (e *Engine) drawMainSurface() {
 	rl.DrawTextEx(e.systemFont, fmt.Sprintf("Alloc: %d/%d - %0.2fMB", int(memStats.Alloc/1024/1024), int(memStats.TotalAlloc/1024/1024), float32(memStats.Sys/1024/1024)), rl.Vector2{X: 5, Y: 37}, 18, 0, rl.White)
 
 	rl.EndDrawing()
+}
+
+func (e *Engine) loadPalette(name string, path string) error {
+	if common.PaletteTexture == nil {
+		common.PaletteTexture = make(map[string]*common.PalTex)
+	}
+
+	println(name, path)
+
+	paletteStream, err := e.loader.Load(path)
+
+	if err != nil {
+		return err
+	}
+	paletteBytes, err := ioutil.ReadAll(paletteStream)
+
+	if err != nil {
+		return err
+	}
+
+	paletteData, err := datPalette.Decode(paletteBytes)
+
+	if err != nil {
+		return err
+	}
+
+	colors := make([]byte, 256*4)
+
+	for i := 0; i < 256; i++ {
+		if i >= len(paletteData) {
+			break
+		}
+
+		offset := i * 4
+		r, g, b, _ := paletteData[i].RGBA()
+		colors[offset] = uint8(r >> 8)
+		colors[offset+1] = uint8(g >> 8)
+		colors[offset+2] = uint8(b >> 8)
+		colors[offset+3] = 255
+	}
+
+	colors[3] = 0
+
+	tex := &common.PalTex{}
+
+	tex.Data = colors
+	tex.Init = false
+
+	common.PaletteTexture[name] = tex
+
+	return nil
 }
 
 func (e *Engine) panic(msg string) {
