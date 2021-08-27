@@ -7,8 +7,6 @@ import (
 	"path"
 	"strings"
 
-	"github.com/d5/tengo/v2"
-
 	rl "github.com/gen2brain/raylib-go/raylib"
 
 	Entity "github.com/OpenDiablo2/AbyssEngine/entity"
@@ -21,19 +19,17 @@ import (
 type Sprite struct {
 	*Entity.Entity
 
-	mousePosProvider  common.MousePositionProvider
-	Sequences         []*dc6.Direction
-	palette           []float32
-	CurrentSequence   int
-	CurrentFrame      int
-	initialized       bool
-	Visible           bool
-	CellSizeX         int
-	CellSizeY         int
-	isPressed         bool
-	texture           rl.RenderTexture2D
-	onMouseButtonDown *tengo.CompiledFunction
-	onMouseButtonUp   *tengo.CompiledFunction
+	mousePosProvider common.MousePositionProvider
+	Sequences        []*dc6.Direction
+	palette          []float32
+	CurrentSequence  int
+	CurrentFrame     int
+	initialized      bool
+	Visible          bool
+	CellSizeX        int
+	CellSizeY        int
+	isPressed        bool
+	texture          rl.RenderTexture2D
 }
 
 func New(loaderProvider common.LoaderProvider, mousePosProvider common.MousePositionProvider,
@@ -154,9 +150,9 @@ func (s *Sprite) update() {
 
 		s.isPressed = true
 
-		if s.onMouseButtonDown != nil {
-			// TODO: Call
-		}
+		//if s.onMouseButtonDown != nil {
+		// TODO: Call
+		//}
 	} else {
 		s.isPressed = false
 	}

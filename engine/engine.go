@@ -5,12 +5,11 @@ import (
 	"math"
 	"runtime"
 
-	"github.com/d5/tengo/v2"
+	lua "github.com/yuin/gopher-lua"
 
-	"github.com/OpenDiablo2/AbyssEngine/entity/sprite"
-
+	"github.com/OpenDiablo2/AbyssEngine/entity"
 	Entity "github.com/OpenDiablo2/AbyssEngine/entity"
-
+	"github.com/OpenDiablo2/AbyssEngine/entity/sprite"
 	"github.com/OpenDiablo2/AbyssEngine/loader"
 	"github.com/OpenDiablo2/AbyssEngine/loader/filesystemloader"
 	"github.com/OpenDiablo2/AbyssEngine/media"
@@ -35,9 +34,9 @@ type Engine struct {
 	engineMode    EngineMode
 	cursorSprite  *sprite.Sprite
 	rootNode      *Entity.Entity
-	script        *tengo.Compiled
 	cursorX       int
 	cursorY       int
+	luaState      *lua.LState
 }
 
 func (e *Engine) GetMousePosition() (X, Y int) {
@@ -61,7 +60,7 @@ func New(config Configuration) *Engine {
 		engineMode:    EngineModeBoot,
 		renderSurface: rl.LoadRenderTexture(800, 600),
 		systemFont:    rl.LoadFontFromMemory(".ttf", media.FontDiabloHeavy, int32(len(media.FontDiabloHeavy)), 18, nil, 0),
-		rootNode:      Entity.New(),
+		rootNode:      entity.New(),
 	}
 
 	result.loader = loader.New(result)
