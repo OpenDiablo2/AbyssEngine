@@ -169,7 +169,6 @@ func (s *Sprite) initializeTexture() {
 		height += int(s.Sequences[s.CurrentSequence].Frames[s.CurrentFrame+(i*s.CellSizeX)].Height)
 	}
 
-	s.texture = rl.LoadRenderTexture(int32(width), int32(height))
 	pixels := make([]byte, width*height)
 
 	targetStartX := 0
