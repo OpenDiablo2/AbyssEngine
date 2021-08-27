@@ -28,7 +28,7 @@ type Sprite struct {
 	CellSizeX        int
 	CellSizeY        int
 	isPressed        bool
-	texture          rl.RenderTexture2D
+	texture          rl.Texture2D
 }
 
 func New(loaderProvider common.LoaderProvider, mousePosProvider common.MousePositionProvider,
@@ -128,7 +128,7 @@ func (s *Sprite) render() {
 	//rl.DrawRectangle(int32(s.X), int32(s.Y), int32(s.FrameWidth()), int32(s.FrameHeight()), rl.White)
 	rl.SetShaderValueV(common.PaletteShader, common.PaletteShaderLoc, s.palette, rl.ShaderUniformVec3, 256)
 	rl.BeginShaderMode(common.PaletteShader)
-	rl.DrawTexture(s.texture.Texture, int32(s.X), int32(s.Y), rl.White)
+	rl.DrawTexture(s.texture, int32(s.X), int32(s.Y), rl.White)
 	rl.EndShaderMode()
 }
 
@@ -143,7 +143,7 @@ func (s *Sprite) update() {
 		mx, my := s.mousePosProvider.GetMousePosition()
 		posX, posY := s.GetPosition()
 
-		if mx < posX || my < posY || mx >= (posX+int(s.texture.Texture.Width)) || my >= (posY+int(s.texture.Texture.Height)) {
+		if mx < posX || my < posY || mx >= (posX+int(s.texture.Width)) || my >= (posY+int(s.texture.Height)) {
 			return
 		}
 
@@ -199,6 +199,6 @@ func (s *Sprite) initializeTexture() {
 	}
 
 	img := rl.NewImage(pixels, int32(width), int32(height), 1, rl.UncompressedGrayscale)
-	s.texture.Texture = rl.LoadTextureFromImage(img)
+	s.texture = rl.LoadTextureFromImage(img)
 
 }
