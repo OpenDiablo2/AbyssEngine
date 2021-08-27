@@ -15,9 +15,13 @@ out vec4 finalColor;
 
 void main() {
   vec4 texelColor = texture(texture0, fragTexCoord);
+  int index = int(texelColor * 255.0);
 
-  int index = int(texelColor.r * 255.0);
+  if (index == 0) {
+      discard;
+  }
+
   vec3 color = palette[index];
 
-  finalColor = vec4(color, texelColor.a);
+  finalColor = vec4(color, 1.0);
 }

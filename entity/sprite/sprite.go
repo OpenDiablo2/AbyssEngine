@@ -170,7 +170,7 @@ func (s *Sprite) initializeTexture() {
 	}
 
 	s.texture = rl.LoadRenderTexture(int32(width), int32(height))
-	pixels := make([]rl.Color, width*height)
+	pixels := make([]byte, width*height)
 
 	targetStartX := 0
 	targetStartY := 0
@@ -185,18 +185,9 @@ func (s *Sprite) initializeTexture() {
 			for y := 0; y < int(frameHeight); y++ {
 				idx := targetStartX + ((targetStartY + y) * width)
 				for x := 0; x < int(frameWidth); x++ {
-					if s.Sequences[s.CurrentSequence].Frames[cellIndex].ColorIndexAt(x, y) == 0 {
-						pixels[idx].A = 0
-						idx++
-						continue
-					}
-
 					c := s.Sequences[s.CurrentSequence].Frames[cellIndex].ColorIndexAt(x, y)
 
-					pixels[idx].R = uint8(c)
-					pixels[idx].G = uint8(c)
-					pixels[idx].B = uint8(c)
-					pixels[idx].A = uint8(255)
+					pixels[idx] = c
 					idx++
 				}
 			}
@@ -208,6 +199,7 @@ func (s *Sprite) initializeTexture() {
 		targetStartY += int(s.Sequences[s.CurrentSequence].Frames[(cellOffsetY * s.CellSizeX)].Height)
 	}
 
-	rl.UpdateTexture(s.texture.Texture, pixels)
+	img := rl.NewImage(pixels, int32(width), int32(height), 1, rl.UncompressedGrayscale)
+	s.texture.Texture = rl.LoadTextureFromImage(img)
 
 }
