@@ -2,7 +2,6 @@ package sprite
 
 import (
 	"errors"
-	"image/color"
 	"io/ioutil"
 	"path"
 	"strings"
@@ -93,7 +92,6 @@ func New(loaderProvider common.LoaderProvider, mousePosProvider common.MousePosi
 			return nil, err
 		}
 
-		dc6Res.SetPalette(color.Palette(paletteData))
 		result.setPalette(paletteData)
 		result.Sequences = dc6Res.Directions
 
@@ -113,11 +111,12 @@ func (s *Sprite) setPalette(paletteData datPalette.DAT) {
 			break
 		}
 
+
 		offset := i * 3
 		r, g, b, _ := paletteData[i].RGBA()
-		s.palette[offset] = float32(r)
-		s.palette[offset+1] = float32(g)
-		s.palette[offset+2] = float32(b)
+		s.palette[offset] = float32(r) / 65535.0
+		s.palette[offset+1] = float32(g) / 65535.0
+		s.palette[offset+2] = float32(b) / 65535.0
 	}
 }
 
@@ -127,10 +126,10 @@ func (s *Sprite) render() {
 	}
 
 	//rl.DrawRectangle(int32(s.X), int32(s.Y), int32(s.FrameWidth()), int32(s.FrameHeight()), rl.White)
-	//rl.SetShaderValueV(common.PaletteShader, common.PaletteShaderLoc, s.palette, rl.ShaderUniformIvec3, 256)
-	//rl.BeginShaderMode(common.PaletteShader)
+	rl.SetShaderValueV(common.PaletteShader, common.PaletteShaderLoc, s.palette, rl.ShaderUniformVec3, 256)
+	rl.BeginShaderMode(common.PaletteShader)
 	rl.DrawTexture(s.texture.Texture, int32(s.X), int32(s.Y), rl.White)
-	//rl.EndShaderMode()
+	rl.EndShaderMode()
 }
 
 func (s *Sprite) update() {
@@ -192,12 +191,12 @@ func (s *Sprite) initializeTexture() {
 						continue
 					}
 
-					r, g, b, a := s.Sequences[s.CurrentSequence].Frames[cellIndex].At(x, y).RGBA()
+					c := s.Sequences[s.CurrentSequence].Frames[cellIndex].ColorIndexAt(x, y)
 
-					pixels[idx].R = uint8(r)
-					pixels[idx].G = uint8(g)
-					pixels[idx].B = uint8(b)
-					pixels[idx].A = uint8(a)
+					pixels[idx].R = uint8(c)
+					pixels[idx].G = uint8(c)
+					pixels[idx].B = uint8(c)
+					pixels[idx].A = uint8(255)
 					idx++
 				}
 			}
