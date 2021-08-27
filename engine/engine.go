@@ -179,8 +179,6 @@ func (e *Engine) loadPalette(name string, path string) error {
 		common.PaletteTexture = make(map[string]*common.PalTex)
 	}
 
-	println(name, path)
-
 	paletteStream, err := e.loader.Load(path)
 
 	if err != nil {

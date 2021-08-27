@@ -19,8 +19,8 @@ type Sprite struct {
 	*Entity.Entity
 
 	mousePosProvider  common.MousePositionProvider
-	Sequences         []*dc6.Direction
-	palette          string
+	Sequences         common.SequenceProvider
+	palette           string
 	CurrentSequence   int
 	CurrentFrame      int
 	initialized       bool
@@ -72,14 +72,14 @@ func New(loaderProvider common.LoaderProvider, mousePosProvider common.MousePosi
 			return nil, err
 		}
 
-		_, err = dcc.FromBytes(bytes)
+		dccRes, err := dcc.FromBytes(bytes)
 
 		if err != nil {
 			return nil, err
 		}
 
-		// result.Sequences = dccRes.Directions() TODO: Fix
-		return nil, errors.New("unsupported file format")
+		result.Sequences = &DCCSequenceProvider{dccRes.Directions()}
+
 	case ".dc6":
 		bytes, err := ioutil.ReadAll(fileStream)
 
@@ -93,7 +93,7 @@ func New(loaderProvider common.LoaderProvider, mousePosProvider common.MousePosi
 			return nil, err
 		}
 
-		result.Sequences = dc6Res.Directions
+		result.Sequences = &DC6SequenceProvider{Sequences: dc6Res.Directions}
 
 	default:
 		return nil, errors.New("unsupported file format")
@@ -157,11 +157,11 @@ func (s *Sprite) initializeTexture() {
 	height := 0
 
 	for i := 0; i < s.CellSizeX; i++ {
-		width += int(s.Sequences[s.CurrentSequence].Frames[s.CurrentFrame+i].Width)
+		width += s.Sequences.FrameWidth(s.CurrentSequence, s.CurrentFrame+i)
 	}
 
 	for i := 0; i < s.CellSizeY; i++ {
-		height += int(s.Sequences[s.CurrentSequence].Frames[s.CurrentFrame+(i*s.CellSizeX)].Height)
+		height += s.Sequences.FrameHeight(s.CurrentSequence, s.CurrentFrame+(i*s.CellSizeX))
 	}
 
 	pixels := make([]byte, width*height)
@@ -173,13 +173,13 @@ func (s *Sprite) initializeTexture() {
 		for cellOffsetX := 0; cellOffsetX < s.CellSizeX; cellOffsetX++ {
 			cellIndex := s.CurrentFrame + (cellOffsetX + (cellOffsetY * s.CellSizeX))
 
-			frameWidth := s.Sequences[s.CurrentSequence].Frames[cellIndex].Width
-			frameHeight := s.Sequences[s.CurrentSequence].Frames[cellIndex].Height
+			frameWidth := s.Sequences.FrameWidth(s.CurrentSequence, cellIndex)
+			frameHeight := s.Sequences.FrameHeight(s.CurrentSequence, cellIndex)
 
-			for y := 0; y < int(frameHeight); y++ {
+			for y := 0; y < frameHeight; y++ {
 				idx := targetStartX + ((targetStartY + y) * width)
-				for x := 0; x < int(frameWidth); x++ {
-					c := s.Sequences[s.CurrentSequence].Frames[cellIndex].ColorIndexAt(x, y)
+				for x := 0; x < frameWidth; x++ {
+					c := s.Sequences.GetColorIndexAt(s.CurrentSequence, cellIndex, x, y)
 
 					pixels[idx] = c
 					idx++
@@ -190,7 +190,7 @@ func (s *Sprite) initializeTexture() {
 		}
 
 		targetStartX = 0
-		targetStartY += int(s.Sequences[s.CurrentSequence].Frames[(cellOffsetY * s.CellSizeX)].Height)
+		targetStartY += s.Sequences.FrameHeight(s.CurrentSequence, cellOffsetY*s.CellSizeX)
 	}
 
 	img := rl.NewImage(pixels, int32(width), int32(height), 1, rl.UncompressedGrayscale)

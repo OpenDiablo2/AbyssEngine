@@ -14,6 +14,6 @@ uniform sampler2D palette;
 out vec4 finalColor;
 
 void main() {
-  vec4 index = texture2D(texture0, fragTexCoord);
-  finalColor = texture2D(palette, index.xy);
+  vec4 index = texture(texture0, fragTexCoord);
+  finalColor = texture(palette, index.xy);
 }
