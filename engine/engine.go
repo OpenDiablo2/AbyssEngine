@@ -41,7 +41,13 @@ func (e *Engine) GetMousePosition() (X, Y int) {
 }
 
 func (e *Engine) GetLanguageCode() string {
+	// TODO: Make this dynamic
 	return "eng"
+}
+
+func (e *Engine) GetLanguageFontCode() string {
+	// TODO: Make this dynamic
+	return "latin"
 }
 
 // New creates a new instance of the engine

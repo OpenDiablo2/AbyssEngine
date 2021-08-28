@@ -1,4 +1,4 @@
-package sprite
+package common
 
 import dc6 "github.com/OpenDiablo2/dc6/pkg"
 

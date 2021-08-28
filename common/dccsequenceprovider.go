@@ -1,4 +1,4 @@
-package sprite
+package common
 
 import (
 	dcc "github.com/OpenDiablo2/dcc/pkg"

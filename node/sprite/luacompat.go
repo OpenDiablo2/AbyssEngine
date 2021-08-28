@@ -362,35 +362,3 @@ func luaGetSetActive(l *lua.LState) int {
 
 	return 0
 }
-
-//
-//func (s *Sprite) IndexSet(index, value tengo.Object) error {
-//	indexStr, ok := tengo.ToString(index)
-//
-//	if !ok {
-//		return errors.New("invalid index")
-//	}
-//
-//	switch indexStr {
-//	case "onMouseButtonDown":
-//		fn, ok := tengo.ToInterface(value).(*tengo.CompiledFunction)
-//		if !ok {
-//			s.onMouseButtonDown = nil
-//		} else {
-//			s.onMouseButtonDown = fn
-//		}
-//
-//		return nil
-//	case "onMouseButtonUp":
-//		fn, ok := tengo.ToInterface(value).(*tengo.CompiledFunction)
-//		if !ok {
-//			s.onMouseButtonUp = nil
-//		} else {
-//			s.onMouseButtonUp = fn
-//		}
-//
-//		return nil
-//	}
-//
-//	return fmt.Errorf("invalid index: %s", indexStr)
-//}

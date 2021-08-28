@@ -39,6 +39,7 @@ func (l *Loader) Load(path string) (io.ReadSeekCloser, error) {
 	}
 
 	path = strings.ReplaceAll(path, "{LANG}", l.sysLanguageProvider.GetLanguageCode())
+	path = strings.ReplaceAll(path, "{LANG_FONT}", l.sysLanguageProvider.GetLanguageFontCode())
 
 	for providerIdx := range l.providers {
 		if !l.providers[providerIdx].Exists(path) {

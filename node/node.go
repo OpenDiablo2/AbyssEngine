@@ -3,20 +3,22 @@ package node
 import (
 	"errors"
 
+	"github.com/rs/zerolog/log"
+
 	"github.com/segmentio/ksuid"
 )
 
 type Node struct {
-	Id               ksuid.KSUID
-	Parent           *Node
-	Children         []*Node
-	ChildrenToRemove []*Node
-	Active           bool
-	Visible          bool
-	X                int
-	Y                int
-	RenderCallback   func()
-	UpdateCallback   func()
+	Id             ksuid.KSUID
+	ShouldRemove   bool
+	Parent         *Node
+	Children       []*Node
+	Active         bool
+	Visible        bool
+	X              int
+	Y              int
+	RenderCallback func()
+	UpdateCallback func()
 }
 
 func New() *Node {
@@ -48,6 +50,8 @@ func (e *Node) AddChild(entity *Node) error {
 		return errors.New("node already has a Parent")
 	}
 
+	log.Trace().Msgf("added node %s to %s", entity.Id.String(), e.Id.String())
+
 	e.Children = append(e.Children, entity)
 	entity.Parent = e
 
@@ -69,6 +73,8 @@ func (e *Node) RemoveChild(node *Node) {
 		if e.Children[idx] != node {
 			continue
 		}
+
+		log.Trace().Msgf("removed node %s from %s", e.Children[idx].Id.String(), e.Id.String())
 
 		e.Children[idx].Parent = nil
 		newChildren := e.Children[:idx]
@@ -128,11 +134,25 @@ func (e *Node) Update() {
 		e.UpdateCallback()
 	}
 
+	toRemove := make([]*Node, 0)
 	for idx := range e.Children {
 		if !e.Children[idx].Active {
+			if e.Children[idx].ShouldRemove {
+				toRemove = append(toRemove, e.Children[idx])
+			}
+
 			continue
 		}
 
 		e.Children[idx].Update()
+
+		if e.Children[idx].ShouldRemove {
+			toRemove = append(toRemove, e.Children[idx])
+		}
 	}
+
+	for idx := range toRemove {
+		e.RemoveChild(toRemove[idx])
+	}
+
 }

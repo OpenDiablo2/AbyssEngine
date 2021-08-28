@@ -60,6 +60,7 @@ func New(loaderProvider common.LoaderProvider, mousePosProvider common.MousePosi
 	fileExt := strings.ToLower(path.Ext(filePath))
 
 	fileStream, err := loaderProvider.Load(filePath)
+	defer fileStream.Close()
 
 	if err != nil {
 		return nil, err
@@ -67,7 +68,7 @@ func New(loaderProvider common.LoaderProvider, mousePosProvider common.MousePosi
 
 	_, ok := common.PaletteTexture[palette]
 	if !ok {
-		return nil, errors.New("Sprite loaded with non-existent palette")
+		return nil, errors.New("sprite loaded with non-existent palette")
 	}
 
 	switch fileExt {
@@ -84,7 +85,7 @@ func New(loaderProvider common.LoaderProvider, mousePosProvider common.MousePosi
 			return nil, err
 		}
 
-		result.Sequences = &DCCSequenceProvider{dccRes.Directions()}
+		result.Sequences = &common.DCCSequenceProvider{dccRes.Directions()}
 
 	case ".dc6":
 		bytes, err := ioutil.ReadAll(fileStream)
@@ -99,13 +100,11 @@ func New(loaderProvider common.LoaderProvider, mousePosProvider common.MousePosi
 			return nil, err
 		}
 
-		result.Sequences = &DC6SequenceProvider{Sequences: dc6Res.Directions}
+		result.Sequences = &common.DC6SequenceProvider{Sequences: dc6Res.Directions}
 
 	default:
 		return nil, errors.New("unsupported file format")
 	}
-
-	_ = fileStream.Close()
 
 	return result, nil
 }
@@ -238,11 +237,8 @@ func (s *Sprite) initializeTexture() {
 }
 
 func (s *Sprite) Destroy() {
-	if s.Parent != nil {
-		s.Parent.RemoveChild(s.Node)
-	}
-
-	s.RemoveAllChildren()
+	s.ShouldRemove = true
+	s.Active = false
 
 	if s.hasTexture {
 		rl.UnloadTexture(s.texture)

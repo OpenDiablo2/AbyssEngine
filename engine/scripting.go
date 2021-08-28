@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/OpenDiablo2/AbyssEngine/node/label"
+
 	"github.com/OpenDiablo2/AbyssEngine/common"
 	"github.com/OpenDiablo2/AbyssEngine/loader/filesystemloader"
 	"github.com/OpenDiablo2/AbyssEngine/loader/mpqloader"
@@ -110,6 +112,10 @@ func (e *Engine) bootstrapScripts() {
 				// loadSprite(filePath: string, palette: string) Sprite
 				// returns a sprite based on the path and palette
 				"loadSprite": func(l *lua.LState) int { return e.luaLoadSprite(l) },
+
+				// loadLabel(fontPath: string, palette: string) Label
+				// returns a label based on the path and palette
+				"loadLabel": func(l *lua.LState) int { return e.luaLoadLabel(l) },
 
 				// setCursor(cursor: Sprite)
 				// sets the current cursor, or clears it if nil
@@ -479,4 +485,25 @@ func (e *Engine) luaLoadPalette(l *lua.LState) int {
 	}
 
 	return 0
+}
+
+func (e *Engine) luaLoadLabel(l *lua.LState) int {
+	if l.GetTop() != 2 {
+		l.ArgError(l.GetTop(), "expected two arguments")
+		return 0
+	}
+
+	fontPath := l.CheckString(1)
+	palette := l.CheckString(2)
+
+	result, err := label.New(e.loader, fontPath, palette)
+
+	if err != nil {
+		l.RaiseError(err.Error())
+		return 0
+	}
+
+	l.Push(result.ToLua(l))
+	return 1
+
 }
