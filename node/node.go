@@ -7,15 +7,16 @@ import (
 )
 
 type Node struct {
-	Id             ksuid.KSUID
-	Parent         *Node
-	Children       []*Node
-	Active         bool
-	Visible        bool
-	X              int
-	Y              int
-	RenderCallback func()
-	UpdateCallback func()
+	Id               ksuid.KSUID
+	Parent           *Node
+	Children         []*Node
+	ChildrenToRemove []*Node
+	Active           bool
+	Visible          bool
+	X                int
+	Y                int
+	RenderCallback   func()
+	UpdateCallback   func()
 }
 
 func New() *Node {
