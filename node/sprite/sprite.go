@@ -26,9 +26,14 @@ type Sprite struct {
 	CellSizeX         int
 	CellSizeY         int
 	isPressed         bool
+	isMouseOver       bool
+	canPress          bool
+	hasTexture        bool
 	texture           rl.Texture2D
 	onMouseButtonDown func()
 	onMouseButtonUp   func()
+	onMouseOver       func()
+	onMouseLeave      func()
 }
 
 func New(loaderProvider common.LoaderProvider, mousePosProvider common.MousePositionProvider,
@@ -42,7 +47,10 @@ func New(loaderProvider common.LoaderProvider, mousePosProvider common.MousePosi
 		CurrentFrame:     0,
 		CellSizeX:        1,
 		CellSizeY:        1,
+		hasTexture:       false,
 		isPressed:        false,
+		isMouseOver:      false,
+		canPress:         true,
 		palette:          palette,
 	}
 
@@ -126,22 +134,48 @@ func (s *Sprite) render() {
 }
 
 func (s *Sprite) update() {
-	if !s.isPressed && rl.IsMouseButtonDown(rl.MouseLeftButton) {
-
+	if s.onMouseButtonUp != nil || s.onMouseButtonDown != nil || s.onMouseOver != nil || s.onMouseLeave != nil {
 		mx, my := s.mousePosProvider.GetMousePosition()
 		posX, posY := s.GetPosition()
+		mouseIsOver := mx >= posX && my >= posY && mx < (posX+int(s.texture.Width)) && my < (posY+int(s.texture.Height))
 
-		if mx >= posX && my >= posY && mx < (posX+int(s.texture.Width)) && my < (posY+int(s.texture.Height)) {
-			s.isPressed = true
+		if rl.IsMouseButtonDown(rl.MouseLeftButton) {
+			if !s.isPressed {
+				if s.canPress && mouseIsOver {
 
-			if s.onMouseButtonDown != nil {
-				s.onMouseButtonDown()
+					s.isPressed = true
+
+					if s.onMouseButtonDown != nil {
+						s.onMouseButtonDown()
+					}
+				} else {
+					s.canPress = false
+				}
 			}
+
+		} else {
+			if s.isPressed {
+				s.isPressed = false
+
+				if mouseIsOver {
+					if s.onMouseButtonUp != nil {
+						s.onMouseButtonUp()
+					}
+				}
+			}
+			s.canPress = true
 		}
 
-	} else {
-		if !rl.IsMouseButtonDown(rl.MouseLeftButton) {
-			s.isPressed = false
+		if mouseIsOver && !s.isMouseOver {
+			s.isMouseOver = true
+			if s.onMouseOver != nil {
+				s.onMouseOver()
+			}
+		} else if !mouseIsOver && s.isMouseOver {
+			s.isMouseOver = false
+			if s.onMouseLeave != nil {
+				s.onMouseLeave()
+			}
 		}
 	}
 
@@ -193,6 +227,24 @@ func (s *Sprite) initializeTexture() {
 	}
 
 	img := rl.NewImage(pixels, int32(width), int32(height), 1, rl.UncompressedGrayscale)
-	s.texture = rl.LoadTextureFromImage(img)
 
+	if !s.hasTexture {
+		s.hasTexture = true
+	} else {
+		rl.UnloadTexture(s.texture)
+	}
+
+	s.texture = rl.LoadTextureFromImage(img)
+}
+
+func (s *Sprite) Destroy() {
+	if s.Parent != nil {
+		s.Parent.RemoveChild(s.Node)
+	}
+
+	s.RemoveAllChildren()
+
+	if s.hasTexture {
+		rl.UnloadTexture(s.texture)
+	}
 }

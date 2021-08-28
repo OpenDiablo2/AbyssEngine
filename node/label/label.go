@@ -6,7 +6,8 @@ type Label struct {
 	*node.Node
 }
 
-func New(filePath, palette string) *Label {
+func New(fontPath, palette string) *Label {
 	result := &Label{}
+
 	return result
 }

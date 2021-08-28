@@ -53,6 +53,32 @@ func (e *Node) AddChild(entity *Node) error {
 	return nil
 }
 
+func (e *Node) RemoveAllChildren() {
+	for idx := range e.Children {
+		e.Children[idx].Parent = nil
+	}
+
+	e.Children = make([]*Node, 0)
+
+	return
+}
+
+func (e *Node) RemoveChild(node *Node) {
+	for idx := range e.Children {
+		if e.Children[idx] != node {
+			continue
+		}
+
+		e.Children[idx].Parent = nil
+		newChildren := e.Children[:idx]
+		newChildren = append(newChildren, e.Children[idx+1:]...)
+
+		e.Children = newChildren
+
+		return
+	}
+}
+
 func (e *Node) FindChild(id ksuid.KSUID) *Node {
 	// First try a high-level search of direct Children
 	for idx := range e.Children {

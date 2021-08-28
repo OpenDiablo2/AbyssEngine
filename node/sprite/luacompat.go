@@ -23,8 +23,118 @@ var LuaTypeExport = common.LuaTypeExport{
 		"currentFrame":           luaGetSetCurrentFrame,
 		"sequenceCount":          luaGetSequenceCount,
 		"frameCount":             luaGetFrameCount,
+		"destroy":                luaDestroy,
 		"mouseButtonDownHandler": luaGetSetMouseButtonDownHandler,
+		"mouseButtonUpHandler":   luaGetSetMouseButtonUpHandler,
+		"mouseOverHandler":       luaGetSetMouseOverHandler,
+		"mouseLeaveHandler":      luaGetSetMouseLeaveHandler,
 	},
+}
+
+func luaGetSetMouseOverHandler(l *lua.LState) int {
+	sprite, err := FromLua(l.ToUserData(1))
+
+	if err != nil {
+		l.RaiseError("failed to convert")
+		return 0
+	}
+
+	if l.GetTop() == 1 {
+		l.Push(l.NewFunction(func(l *lua.LState) int {
+			sprite.onMouseOver()
+			return 0
+		}))
+
+		return 1
+	}
+
+	luaFunc := l.CheckFunction(2)
+	sprite.onMouseOver = func() {
+		if err := l.CallByParam(lua.P{
+			Fn:      luaFunc,
+			NRet:    1,
+			Protect: true,
+		}, sprite.ToLua(l)); err != nil {
+			panic(err)
+		}
+	}
+
+	return 0
+}
+
+func luaGetSetMouseLeaveHandler(l *lua.LState) int {
+	sprite, err := FromLua(l.ToUserData(1))
+
+	if err != nil {
+		l.RaiseError("failed to convert")
+		return 0
+	}
+
+	if l.GetTop() == 1 {
+		l.Push(l.NewFunction(func(l *lua.LState) int {
+			sprite.onMouseLeave()
+			return 0
+		}))
+
+		return 1
+	}
+
+	luaFunc := l.CheckFunction(2)
+	sprite.onMouseLeave = func() {
+		if err := l.CallByParam(lua.P{
+			Fn:      luaFunc,
+			NRet:    1,
+			Protect: true,
+		}, sprite.ToLua(l)); err != nil {
+			panic(err)
+		}
+	}
+
+	return 0
+}
+
+func luaDestroy(l *lua.LState) int {
+	sprite, err := FromLua(l.ToUserData(1))
+
+	if err != nil {
+		l.RaiseError("failed to convert")
+		return 0
+	}
+
+	sprite.Destroy()
+
+	return 0
+}
+
+func luaGetSetMouseButtonUpHandler(l *lua.LState) int {
+	sprite, err := FromLua(l.ToUserData(1))
+
+	if err != nil {
+		l.RaiseError("failed to convert")
+		return 0
+	}
+
+	if l.GetTop() == 1 {
+		l.Push(l.NewFunction(func(l *lua.LState) int {
+			sprite.onMouseButtonUp()
+			return 0
+		}))
+
+		return 1
+	}
+
+	luaFunc := l.CheckFunction(2)
+	sprite.onMouseButtonUp = func() {
+		if err := l.CallByParam(lua.P{
+			Fn:      luaFunc,
+			NRet:    1,
+			Protect: true,
+		}, sprite.ToLua(l)); err != nil {
+			panic(err)
+		}
+	}
+
+	return 0
 }
 
 func luaGetFrameCount(l *lua.LState) int {
