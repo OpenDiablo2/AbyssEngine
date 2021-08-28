@@ -6,17 +6,15 @@ import (
 	"path"
 	"strings"
 
-	rl "github.com/gen2brain/raylib-go/raylib"
-
-	Entity "github.com/OpenDiablo2/AbyssEngine/entity"
-
 	"github.com/OpenDiablo2/AbyssEngine/common"
+	"github.com/OpenDiablo2/AbyssEngine/node"
 	dc6 "github.com/OpenDiablo2/dc6/pkg"
 	dcc "github.com/OpenDiablo2/dcc/pkg"
+	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 type Sprite struct {
-	*Entity.Entity
+	*node.Node
 
 	mousePosProvider  common.MousePositionProvider
 	Sequences         common.SequenceProvider
@@ -36,7 +34,7 @@ type Sprite struct {
 func New(loaderProvider common.LoaderProvider, mousePosProvider common.MousePositionProvider,
 	filePath, palette string) (*Sprite, error) {
 	result := &Sprite{
-		Entity:           Entity.New(),
+		Node:             node.New(),
 		mousePosProvider: mousePosProvider,
 		initialized:      false,
 		Visible:          true,

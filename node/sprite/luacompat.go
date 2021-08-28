@@ -31,7 +31,7 @@ func luaGetNode(l *lua.LState) int {
 		return 0
 	}
 
-	l.Push(sprite.Entity.ToLua(l))
+	l.Push(sprite.Node.ToLua(l))
 
 	return 1
 }

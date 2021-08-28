@@ -9,17 +9,17 @@ import (
 	"time"
 
 	"github.com/OpenDiablo2/AbyssEngine/common"
-	"github.com/OpenDiablo2/AbyssEngine/entity"
-	"github.com/OpenDiablo2/AbyssEngine/entity/sprite"
 	"github.com/OpenDiablo2/AbyssEngine/loader/filesystemloader"
 	"github.com/OpenDiablo2/AbyssEngine/loader/mpqloader"
+	"github.com/OpenDiablo2/AbyssEngine/node"
+	"github.com/OpenDiablo2/AbyssEngine/node/sprite"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	lua "github.com/yuin/gopher-lua"
 )
 
 var luaTypes = []common.LuaTypeExport{
-	entity.LuaTypeExport,
+	node.LuaTypeExport,
 	sprite.LuaTypeExport,
 }
 
@@ -104,7 +104,7 @@ func (e *Engine) bootstrapScripts() {
 				"luaSplitString": func(l *lua.LState) int { return e.luaSplitString(l) },
 
 				// getRootNode()
-				// returns the root entity node for the engine
+				// returns the root node node for the engine
 				"getRootNode": func(l *lua.LState) int { return e.luaGetRootNode(l) },
 
 				// loadSprite(filePath: string, palette: string) Sprite

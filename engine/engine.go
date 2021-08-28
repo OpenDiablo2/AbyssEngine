@@ -9,12 +9,11 @@ import (
 	lua "github.com/yuin/gopher-lua"
 
 	"github.com/OpenDiablo2/AbyssEngine/common"
-	"github.com/OpenDiablo2/AbyssEngine/entity"
-	Entity "github.com/OpenDiablo2/AbyssEngine/entity"
-	"github.com/OpenDiablo2/AbyssEngine/entity/sprite"
 	"github.com/OpenDiablo2/AbyssEngine/loader"
 	"github.com/OpenDiablo2/AbyssEngine/loader/filesystemloader"
 	"github.com/OpenDiablo2/AbyssEngine/media"
+	"github.com/OpenDiablo2/AbyssEngine/node"
+	"github.com/OpenDiablo2/AbyssEngine/node/sprite"
 	datPalette "github.com/OpenDiablo2/dat_palette/pkg"
 	rl "github.com/gen2brain/raylib-go/raylib"
 	"github.com/rs/zerolog/log"
@@ -31,7 +30,7 @@ type Engine struct {
 	shutdown      bool
 	engineMode    EngineMode
 	cursorSprite  *sprite.Sprite
-	rootNode      *Entity.Entity
+	rootNode      *node.Node
 	cursorX       int
 	cursorY       int
 	luaState      *lua.LState
@@ -58,7 +57,7 @@ func New(config Configuration) *Engine {
 		engineMode:    EngineModeBoot,
 		renderSurface: rl.LoadRenderTexture(800, 600),
 		systemFont:    rl.LoadFontFromMemory(".ttf", media.FontDiabloHeavy, int32(len(media.FontDiabloHeavy)), 18, nil, 0),
-		rootNode:      entity.New(),
+		rootNode:      node.New(),
 	}
 
 	result.loader = loader.New(result)

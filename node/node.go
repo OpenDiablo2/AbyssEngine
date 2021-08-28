@@ -1,4 +1,4 @@
-package entity
+package node
 
 import (
 	"errors"
@@ -6,10 +6,10 @@ import (
 	"github.com/segmentio/ksuid"
 )
 
-type Entity struct {
+type Node struct {
 	Id             ksuid.KSUID
-	Parent         *Entity
-	Children       []*Entity
+	Parent         *Node
+	Children       []*Node
 	Active         bool
 	Visible        bool
 	X              int
@@ -18,11 +18,11 @@ type Entity struct {
 	UpdateCallback func()
 }
 
-func New() *Entity {
-	result := &Entity{
+func New() *Node {
+	result := &Node{
 		Id:       ksuid.New(),
 		Parent:   nil,
-		Children: make([]*Entity, 0),
+		Children: make([]*Node, 0),
 		Active:   true,
 		Visible:  true,
 		X:        0,
@@ -32,7 +32,7 @@ func New() *Entity {
 	return result
 }
 
-func (e *Entity) GetPosition() (X, Y int) {
+func (e *Node) GetPosition() (X, Y int) {
 	if e.Parent == nil {
 		return e.X, e.Y
 	}
@@ -42,9 +42,9 @@ func (e *Entity) GetPosition() (X, Y int) {
 	return e.X + x, e.Y + y
 }
 
-func (e *Entity) AddChild(entity *Entity) error {
+func (e *Node) AddChild(entity *Node) error {
 	if entity.Parent != nil {
-		return errors.New("entity already has a Parent")
+		return errors.New("node already has a Parent")
 	}
 
 	e.Children = append(e.Children, entity)
@@ -53,7 +53,7 @@ func (e *Entity) AddChild(entity *Entity) error {
 	return nil
 }
 
-func (e *Entity) FindChild(id ksuid.KSUID) *Entity {
+func (e *Node) FindChild(id ksuid.KSUID) *Node {
 	// First try a high-level search of direct Children
 	for idx := range e.Children {
 		if e.Children[idx].Id == id {
@@ -74,7 +74,7 @@ func (e *Entity) FindChild(id ksuid.KSUID) *Entity {
 	return nil
 }
 
-func (e *Entity) Render() {
+func (e *Node) Render() {
 	if !e.Visible || !e.Active {
 		return
 	}
@@ -92,7 +92,7 @@ func (e *Entity) Render() {
 	}
 }
 
-func (e *Entity) Update() {
+func (e *Node) Update() {
 	if !e.Active {
 		return
 	}

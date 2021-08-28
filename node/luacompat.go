@@ -1,4 +1,4 @@
-package entity
+package node
 
 import (
 	"fmt"
@@ -16,7 +16,7 @@ var LuaTypeExport = common.LuaTypeExport{
 	},
 }
 
-func (e *Entity) ToLua(l *lua.LState) *lua.LUserData {
+func (e *Node) ToLua(l *lua.LState) *lua.LUserData {
 	result := l.NewUserData()
 	result.Value = e
 
@@ -25,8 +25,8 @@ func (e *Entity) ToLua(l *lua.LState) *lua.LUserData {
 	return result
 }
 
-func FromLua(ud *lua.LUserData) (*Entity, error) {
-	v, ok := ud.Value.(*Entity)
+func FromLua(ud *lua.LUserData) (*Node, error) {
+	v, ok := ud.Value.(*Node)
 
 	if !ok {
 		return nil, fmt.Errorf("failed to convert")
@@ -41,14 +41,14 @@ func luaAppendChild(l *lua.LState) int {
 		return 0
 	}
 
-	self, ok := l.ToUserData(1).Value.(*Entity)
+	self, ok := l.ToUserData(1).Value.(*Node)
 
 	if !ok {
 		l.RaiseError("failed to convert")
 		return 0
 	}
 
-	child, ok := l.ToUserData(2).Value.(*Entity)
+	child, ok := l.ToUserData(2).Value.(*Node)
 
 	if !ok {
 		l.RaiseError("failed to convert")
