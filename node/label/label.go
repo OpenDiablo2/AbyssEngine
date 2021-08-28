@@ -1,13 +1,13 @@
 package label
 
 import (
+	bytes2 "bytes"
 	"errors"
-	"io/ioutil"
-
 	"github.com/OpenDiablo2/AbyssEngine/common"
 	"github.com/OpenDiablo2/AbyssEngine/node"
 	dc6 "github.com/OpenDiablo2/dc6/pkg"
 	tblfont "github.com/OpenDiablo2/tbl_font/pkg"
+	"io"
 )
 
 type Label struct {
@@ -34,13 +34,15 @@ func New(loaderProvider common.LoaderProvider, fontPath, palette string) (*Label
 		return nil, err
 	}
 
-	fontData, err := tblfont.Load(fontTableStream)
+	// hack: mpq block stream is bugged
+	fontTableData, _ := io.ReadAll(fontTableStream)
+	fontTable, err := tblfont.Load(bytes2.NewReader(fontTableData))
 
 	if err != nil {
 		return nil, err
 	}
 
-	result.FontTable = fontData
+	result.FontTable = fontTable
 
 	fontSpriteStream, err := loaderProvider.Load(fontPath + ".dc6")
 	defer fontSpriteStream.Close()
@@ -49,19 +51,15 @@ func New(loaderProvider common.LoaderProvider, fontPath, palette string) (*Label
 		return nil, err
 	}
 
-	bytes, err := ioutil.ReadAll(fontSpriteStream)
+	// hack: mpq block stream is bugged
+	fontSpriteData, _ := io.ReadAll(fontSpriteStream)
+	fontSprite, err := dc6.FromBytes(fontSpriteData)
 
 	if err != nil {
 		return nil, err
 	}
 
-	spriteData, err := dc6.FromBytes(bytes)
-
-	if err != nil {
-		return nil, err
-	}
-
-	result.FontGfx = &common.DC6SequenceProvider{Sequences: spriteData.Directions}
+	result.FontGfx = &common.DC6SequenceProvider{Sequences: fontSprite.Directions}
 
 	result.RenderCallback = result.render
 	result.UpdateCallback = result.update

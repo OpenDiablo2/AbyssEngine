@@ -21,6 +21,8 @@ github.com/OpenDiablo2/mpq v0.0.0-20210821202548-ec71ed9a0c2d h1:X/aiw+MjQLQqxgg
 github.com/OpenDiablo2/mpq v0.0.0-20210821202548-ec71ed9a0c2d/go.mod h1:n4Ln4c+J7U+PSIdmnFraimt0KopM3/W7Mic/mmh6zNM=
 github.com/OpenDiablo2/tbl_font v0.0.0-20210828043410-4143638af70e h1:1oXyoBUaQZskhBNPYFFyd78RsKbOP9pNP7P+pJ7c68k=
 github.com/OpenDiablo2/tbl_font v0.0.0-20210828043410-4143638af70e/go.mod h1:NTyv4p8pthE5erfuVjAJtoDzboczxFB7oGTawEIANyM=
+github.com/OpenDiablo2/wav v0.0.0-20210822025314-429cc1291a8e h1:DHJ5UkDi6RbikGTCxQNM/bGajCBdexnjrYS/B1607fs=
+github.com/OpenDiablo2/wav v0.0.0-20210822025314-429cc1291a8e/go.mod h1:0wUOukC+ZCJWRgm9TabI+ufNcMjzGNKmwkWFeteM/Os=
 github.com/chzyer/logex v1.1.10/go.mod h1:+Ywpsq7O8HXn0nuIou7OrIPyXbp3wmkHB+jjWRnGsAI=
 github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e/go.mod h1:nSuG5e5PlCu98SY8svDHJxuZscDgtXS6KTTbou5AhLI=
 github.com/chzyer/test v0.0.0-20180213035817-a1ea475d72b1/go.mod h1:Q3SI9o4m/ZMnBNeIyt5eFwwo7qiLfzFZmjNmxjkiQlU=
