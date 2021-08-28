@@ -19,8 +19,89 @@ var LuaTypeExport = common.LuaTypeExport{
 		"active":                 luaGetSetActive,
 		"visible":                luaGetSetVisible,
 		"position":               luaGetSetPosition,
+		"currentSequence":        luaGetSetCurrentSequence,
+		"currentFrame":           luaGetSetCurrentFrame,
+		"sequenceCount":          luaGetSequenceCount,
+		"frameCount":             luaGetFrameCount,
 		"mouseButtonDownHandler": luaGetSetMouseButtonDownHandler,
 	},
+}
+
+func luaGetFrameCount(l *lua.LState) int {
+	sprite, err := FromLua(l.ToUserData(1))
+
+	if err != nil {
+		l.RaiseError("failed to convert")
+		return 0
+	}
+
+	l.Push(lua.LNumber(sprite.Sequences.FrameCount(sprite.CurrentSequence)))
+	return 1
+}
+
+func luaGetSequenceCount(l *lua.LState) int {
+	sprite, err := FromLua(l.ToUserData(1))
+
+	if err != nil {
+		l.RaiseError("failed to convert")
+		return 0
+	}
+
+	l.Push(lua.LNumber(sprite.Sequences.SequenceCount()))
+	return 1
+}
+
+func luaGetSetCurrentFrame(l *lua.LState) int {
+	sprite, err := FromLua(l.ToUserData(1))
+
+	if err != nil {
+		l.RaiseError("failed to convert")
+		return 0
+	}
+
+	if l.GetTop() == 1 {
+		l.Push(lua.LNumber(sprite.CurrentFrame))
+		return 1
+	}
+
+	newFrame := l.CheckInt(2)
+
+	if (newFrame < 0) || (newFrame >= sprite.Sequences.FrameCount(sprite.CurrentSequence)) {
+		l.RaiseError("frame index out of bounds")
+		return 0
+	}
+
+	sprite.CurrentFrame = newFrame
+	sprite.initialized = false
+
+	return 0
+}
+
+func luaGetSetCurrentSequence(l *lua.LState) int {
+	sprite, err := FromLua(l.ToUserData(1))
+
+	if err != nil {
+		l.RaiseError("failed to convert")
+		return 0
+	}
+
+	if l.GetTop() == 1 {
+		l.Push(lua.LNumber(sprite.CurrentSequence))
+		return 1
+	}
+
+	newSequence := l.CheckInt(2)
+
+	if (newSequence < 0) || (newSequence >= sprite.Sequences.SequenceCount()) {
+		l.RaiseError("sequence index out of bounds")
+		return 0
+	}
+
+	sprite.CurrentSequence = newSequence
+	sprite.CurrentFrame = 0
+	sprite.initialized = false
+
+	return 0
 }
 
 func luaGetNode(l *lua.LState) int {
@@ -36,9 +117,9 @@ func luaGetNode(l *lua.LState) int {
 	return 1
 }
 
-func (e *Sprite) ToLua(l *lua.LState) *lua.LUserData {
+func (s *Sprite) ToLua(l *lua.LState) *lua.LUserData {
 	result := l.NewUserData()
-	result.Value = e
+	result.Value = s
 
 	l.SetMetatable(result, l.GetTypeMetatable(luaTypeExportName))
 

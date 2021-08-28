@@ -126,27 +126,28 @@ func (s *Sprite) render() {
 }
 
 func (s *Sprite) update() {
-	if !s.initialized {
-		s.initialized = true
-		s.initializeTexture()
-	}
-
 	if !s.isPressed && rl.IsMouseButtonDown(rl.MouseLeftButton) {
 
 		mx, my := s.mousePosProvider.GetMousePosition()
 		posX, posY := s.GetPosition()
 
-		if mx < posX || my < posY || mx >= (posX+int(s.texture.Width)) || my >= (posY+int(s.texture.Height)) {
-			return
+		if mx >= posX && my >= posY && mx < (posX+int(s.texture.Width)) && my < (posY+int(s.texture.Height)) {
+			s.isPressed = true
+
+			if s.onMouseButtonDown != nil {
+				s.onMouseButtonDown()
+			}
 		}
 
-		s.isPressed = true
-
-		if s.onMouseButtonDown != nil {
-			s.onMouseButtonDown()
-		}
 	} else {
-		s.isPressed = false
+		if !rl.IsMouseButtonDown(rl.MouseLeftButton) {
+			s.isPressed = false
+		}
+	}
+
+	if !s.initialized {
+		s.initialized = true
+		s.initializeTexture()
 	}
 }
 
